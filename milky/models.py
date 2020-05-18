@@ -3,6 +3,8 @@
 import re
 import datetime
 
+TRUNCATE_REPR_FIELD_LENGTH = 12
+
 class ResultSet(list):
     """A list like object that holds results from a RTM API query."""
 
@@ -14,8 +16,14 @@ class ModelBase(object):
         pass
 
     def __repr__(self):
-        return u'<%s - %s>' % (self.__class__.__name__, 
-                u', '.join([c for c in dir(self) if not c.startswith(u'_')]))
+        parts = []
+        if hasattr(self, 'id'):
+            parts.append("id={!r}".format(self.id))
+        if hasattr(self, 'name'):
+            name = self.name
+            name = (name[:TRUNCATE_REPR_FIELD_LENGTH] + '...') if len(name) > TRUNCATE_REPR_FIELD_LENGTH else name
+            parts.append("name={!r}".format(name))
+        return u'<{}{}>'.format(self.__class__.__name__, (" " + ", ".join(parts)) if parts else "")
 
     def __getstate__(self):
         return dict(self.__dict__)
