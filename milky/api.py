@@ -132,7 +132,7 @@ class API(object):
                 logging.debug(row)
                 msg = rsp['err']['msg'].encode(CHARSET)
                 code = int(rsp['err']['code'])
-                logging.warn("%s (%d)" % (msg, code))
+                logging.warning("%s (%d)" % (msg, code))
                 raise RTMRequestError(msg, code)
             else:
                 raise RTMSystemError('An unknown error has occurred.', ERRCODE_UNKNOWN)
