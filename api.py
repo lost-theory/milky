@@ -3,6 +3,8 @@
 import logging
 import types
 import urllib
+import urllib.parse
+import urllib.request
 import hashlib
 from collections import OrderedDict
 
