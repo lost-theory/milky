@@ -190,9 +190,18 @@ class Request(object):
         return self.rtm.get(method, auth_required, model_cls, **params)
 
 def test_rtm():
-    from milky import test_configs as configs
-    rtm = API(configs.RTM_API_KEY, configs.RTM_SHARED_SECRET, PERMS_DELETE)
-    print (rtm.test.echo())
+    import sys
+    token = None
+    if len(sys.argv) == 4:
+        _, key, secret, token = sys.argv
+    elif len(sys.argv) == 3:
+        _, key, secret = sys.argv
+    else:
+        print("Usage: api.py RTM_API_KEY RTM_SHARED_SECRET [token]")
+        sys.exit(1)
+    rtm = API(key, secret, perms=PERMS_DELETE, token=token)
+    print("Echo?", rtm.test.echo())
+    import code; code.interact(local=locals())
 
 if __name__ == '__main__':
     test_rtm()
