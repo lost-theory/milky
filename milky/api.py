@@ -1,27 +1,21 @@
 # -*- coding: utf-8 -*-
 
+import hashlib
+import http.client
+import json
 import logging
 import types
 import urllib
 import urllib.parse
 import urllib.request
-import hashlib
 from collections import OrderedDict
-
-try:
-    import json
-except ImportError:
-    try:
-        import json
-    except ImportError:
-        from django.utils import json
 
 from milky.error import RTMSystemError, RTMRequestError, \
         ERRCODE_NETWORK, ERRCODE_JSON, ERRCODE_UNKNOWN
 from milky import request
 
-API_URL = 'http://api.rememberthemilk.com/services/rest/'
-AUTH_URL = 'http://www.rememberthemilk.com/services/auth/'
+API_URL = 'https://api.rememberthemilk.com/services/rest/'
+AUTH_URL = 'https://www.rememberthemilk.com/services/auth/'
 
 CHARSET = 'utf-8'
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
@@ -49,9 +43,22 @@ FREQ_MONTHLY = u'MONTHLY'
 FREQ_WEEKLY = u'WEEKLY'
 FREQ_DAILY = u'DAILY'
 
+def safe_read(response):
+    parts = []
+    while True:
+        try:
+            part = response.read(1024*8)
+            parts.append(part)
+        except http.client.IncompleteRead as e:
+            parts.append(e.partial)
+            break
+        if len(part) == 0:
+            break
+    return b''.join(parts)
+
 class API(object):
     """rememberthemilk.com API.
-    
+
     Args:
         api_key - RTM API key.
         shared_secret - RTM shared secret.
@@ -114,10 +121,8 @@ class API(object):
             params['auth_token'] = self.get_token()
         params['api_sig'] = self.__sign(params)
 
-        try:
-            row = self.__call(API_URL, params).read()
-        except Exception as e:
-            raise RTMSystemError('Cannot connect RTM.', ERRCODE_NETWORK)
+        response = self.__call(API_URL, params)
+        row = safe_read(response)
         logging.debug(row)
 
         try:
